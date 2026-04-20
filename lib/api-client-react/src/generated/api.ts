@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  Enquiry,
+  ErrorResponse,
+  HealthStatus,
+  SubmitEnquiryBody,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -92,6 +100,169 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Stores a callback/enquiry request from the contact form
+ * @summary Submit a customer enquiry
+ */
+export const getSubmitEnquiryUrl = () => {
+  return `/api/enquiries`;
+};
+
+export const submitEnquiry = async (
+  submitEnquiryBody: SubmitEnquiryBody,
+  options?: RequestInit,
+): Promise<Enquiry> => {
+  return customFetch<Enquiry>(getSubmitEnquiryUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(submitEnquiryBody),
+  });
+};
+
+export const getSubmitEnquiryMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitEnquiry>>,
+    TError,
+    { data: BodyType<SubmitEnquiryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitEnquiry>>,
+  TError,
+  { data: BodyType<SubmitEnquiryBody> },
+  TContext
+> => {
+  const mutationKey = ["submitEnquiry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitEnquiry>>,
+    { data: BodyType<SubmitEnquiryBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return submitEnquiry(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitEnquiryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitEnquiry>>
+>;
+export type SubmitEnquiryMutationBody = BodyType<SubmitEnquiryBody>;
+export type SubmitEnquiryMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Submit a customer enquiry
+ */
+export const useSubmitEnquiry = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitEnquiry>>,
+    TError,
+    { data: BodyType<SubmitEnquiryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitEnquiry>>,
+  TError,
+  { data: BodyType<SubmitEnquiryBody> },
+  TContext
+> => {
+  return useMutation(getSubmitEnquiryMutationOptions(options));
+};
+
+/**
+ * Returns all submitted enquiries ordered by newest first
+ * @summary List all enquiries
+ */
+export const getListEnquiriesUrl = () => {
+  return `/api/enquiries`;
+};
+
+export const listEnquiries = async (
+  options?: RequestInit,
+): Promise<Enquiry[]> => {
+  return customFetch<Enquiry[]>(getListEnquiriesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListEnquiriesQueryKey = () => {
+  return [`/api/enquiries`] as const;
+};
+
+export const getListEnquiriesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listEnquiries>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listEnquiries>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListEnquiriesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listEnquiries>>> = ({
+    signal,
+  }) => listEnquiries({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listEnquiries>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListEnquiriesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listEnquiries>>
+>;
+export type ListEnquiriesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all enquiries
+ */
+
+export function useListEnquiries<
+  TData = Awaited<ReturnType<typeof listEnquiries>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listEnquiries>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListEnquiriesQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

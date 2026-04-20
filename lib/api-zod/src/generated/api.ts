@@ -14,3 +14,27 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Stores a callback/enquiry request from the contact form
+ * @summary Submit a customer enquiry
+ */
+
+export const SubmitEnquiryBody = zod.object({
+  name: zod.string().min(1),
+  email: zod.string().email(),
+  message: zod.string().min(1),
+});
+
+/**
+ * Returns all submitted enquiries ordered by newest first
+ * @summary List all enquiries
+ */
+export const ListEnquiriesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  message: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListEnquiriesResponse = zod.array(ListEnquiriesResponseItem);

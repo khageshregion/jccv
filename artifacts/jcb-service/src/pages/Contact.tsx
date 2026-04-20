@@ -15,36 +15,49 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useSubmitEnquiry } from "@workspace/api-client-react";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  phone: z.string().min(10, { message: "Please enter a valid phone number." }),
-  projectType: z.string().min(1, { message: "Please select or describe your project type." }),
-  details: z.string().min(10, { message: "Please provide some details about the work required." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  message: z.string().min(10, { message: "Please provide at least 10 characters about the work required." }),
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 export default function Contact() {
   const { toast } = useToast();
+  const submitEnquiry = useSubmitEnquiry();
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
       name: "",
-      phone: "",
-      projectType: "",
-      details: "",
+      email: "",
+      message: "",
     },
   });
 
   function onSubmit(data: ContactFormValues) {
-    console.log(data);
-    toast({
-      title: "Request Received",
-      description: "We will contact you shortly regarding your earthmoving needs.",
-    });
-    form.reset();
+    submitEnquiry.mutate(
+      { data },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Request Received",
+            description: "We will contact you shortly regarding your earthmoving needs.",
+          });
+          form.reset();
+        },
+        onError: () => {
+          toast({
+            title: "Something went wrong",
+            description: "Please try again or contact us directly by phone.",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   }
 
   const fadeIn = {
@@ -60,7 +73,7 @@ export default function Contact() {
           <div className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-primary/20 to-transparent"></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -68,7 +81,7 @@ export default function Contact() {
           >
             Contact Us
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -82,14 +95,14 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 md:mt-24">
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-16">
           {/* Contact Form */}
-          <motion.div 
+          <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeIn}
             className="lg:col-span-3 bg-card border-4 border-border p-8 md:p-10 relative"
           >
             <div className="absolute -top-4 -left-4 w-8 h-8 bg-primary"></div>
-            
+
             <h2 className="text-3xl font-display font-black uppercase mb-6">Request Support</h2>
             <p className="text-muted-foreground mb-8">
               Fill out the form below and we'll get back to you to discuss your project requirements.
@@ -97,43 +110,14 @@ export default function Contact() {
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="uppercase font-bold text-sm tracking-wider">Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your name" {...field} className="h-12 border-2 rounded-none" data-testid="input-name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="uppercase font-bold text-sm tracking-wider">Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your phone number" {...field} className="h-12 border-2 rounded-none" data-testid="input-phone" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
                 <FormField
                   control={form.control}
-                  name="projectType"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="uppercase font-bold text-sm tracking-wider">Project Type</FormLabel>
+                      <FormLabel className="uppercase font-bold text-sm tracking-wider">Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Residential Plot Clearing, Industrial Trenching" {...field} className="h-12 border-2 rounded-none" data-testid="input-project-type" />
+                        <Input placeholder="Your name" {...field} className="h-12 border-2 rounded-none" data-testid="input-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -142,16 +126,30 @@ export default function Contact() {
 
                 <FormField
                   control={form.control}
-                  name="details"
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="uppercase font-bold text-sm tracking-wider">Email Address</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="you@example.com" {...field} className="h-12 border-2 rounded-none" data-testid="input-email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="message"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="uppercase font-bold text-sm tracking-wider">Job Details & Location</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Describe the work needed, specific site location, and estimated timeline." 
-                          className="min-h-[120px] border-2 rounded-none resize-none" 
-                          {...field} 
-                          data-testid="input-details"
+                        <Textarea
+                          placeholder="Describe the work needed, site location, project type (e.g. residential plot clearing, foundation digging), and preferred timing."
+                          className="min-h-[140px] border-2 rounded-none resize-none"
+                          {...field}
+                          data-testid="input-message"
                         />
                       </FormControl>
                       <FormMessage />
@@ -159,15 +157,21 @@ export default function Contact() {
                   )}
                 />
 
-                <Button type="submit" size="lg" className="w-full h-14 text-lg font-bold uppercase tracking-wide" data-testid="btn-submit-contact">
-                  Send Request
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full h-14 text-lg font-bold uppercase tracking-wide"
+                  disabled={submitEnquiry.isPending}
+                  data-testid="btn-submit-contact"
+                >
+                  {submitEnquiry.isPending ? "Sending..." : "Send Request"}
                 </Button>
               </form>
             </Form>
           </motion.div>
 
           {/* Contact Info Sidebar */}
-          <motion.div 
+          <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeIn}
@@ -175,7 +179,7 @@ export default function Contact() {
           >
             <div className="bg-secondary text-secondary-foreground p-8 md:p-10 border-l-8 border-primary">
               <h3 className="text-2xl font-display font-black uppercase mb-6">Direct Contact</h3>
-              
+
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 text-primary">
@@ -225,7 +229,7 @@ export default function Contact() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-10">
                 <Button asChild variant="outline" className="w-full h-14 text-lg font-bold uppercase tracking-wide bg-transparent border-primary text-primary hover:bg-primary hover:text-primary-foreground">
                   <a href="https://wa.me/917706034464?text=Hello%20Aman%20Trading%20JCB%20Service%2C%20I%20need%20JCB%20support%20for%20my%20project.%20Please%20share%20availability%20and%20pricing." target="_blank" rel="noopener noreferrer" data-testid="btn-contact-whatsapp">

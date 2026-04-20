@@ -2,7 +2,7 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+pnpm workspace monorepo. Contains the Aman Trading JCB Service website (React + Vite) and its Express backend API.
 
 ## Stack
 
@@ -15,6 +15,19 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+
+## Artifacts
+
+- **jcb-service** (`artifacts/jcb-service/`) — React + Vite frontend, preview path `/`
+  - Pages: Home, Services, Gallery, About, Contact
+  - Contact form stores enquiries in PostgreSQL via the API
+- **api-server** (`artifacts/api-server/`) — Express 5 backend, preview path `/api`
+  - `POST /api/enquiries` — store a contact form submission
+  - `GET /api/enquiries` — list all enquiries (newest first)
+
+## Database schema
+
+- `enquiries` table: id, name, email, message, created_at
 
 ## Key Commands
 
