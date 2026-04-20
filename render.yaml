@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: aman-jcb-service
+    runtime: node
+    plan: free
+    buildCommand: >
+      npm install -g pnpm &&
+      pnpm install &&
+      PORT=3000 BASE_PATH=/ pnpm --filter @workspace/jcb-service run build &&
+      pnpm --filter @workspace/api-server run build
+    startCommand: node --enable-source-maps artifacts/api-server/dist/index.mjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jcb-db
+          property: connectionString
+
+databases:
+  - name: jcb-db
+    databaseName: jcb
+    user: jcb
+    plan: free
