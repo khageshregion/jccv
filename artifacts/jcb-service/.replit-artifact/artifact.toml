@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Aman Trading JCB Service"
+version = "1.0.0"
+id = "artifacts/jcb-service"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25592
+
+[services.development]
+run = "pnpm --filter @workspace/jcb-service run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/jcb-service", "run", "build" ]
+publicDir = "artifacts/jcb-service/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25592"
+BASE_PATH = "/"

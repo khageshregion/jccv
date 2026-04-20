@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "cwJoROkEeevs0V-bkVoaL"
+uri = "file://artifacts/jcb-service/src/assets/images/gallery-1.png"
+type = "image"
+title = "JCB excavator at work"
+
+[[generated]]
+id = "Pt3dtLlCcpCU-vW8Fe8j_"
+uri = "file://artifacts/jcb-service/src/assets/images/gallery-2.png"
+type = "image"
+title = "Aerial earthmoving project"
+
+[[generated]]
+id = "SzjHkNZr2Iif0ScZYFV3y"
+uri = "file://artifacts/jcb-service/src/assets/images/gallery-3.png"
+type = "image"
+title = "JCB backhoe foundation dig"
